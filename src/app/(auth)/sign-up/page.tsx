@@ -1,26 +1,35 @@
 "use client";
+import { useState } from "react";
 
+import { signUp } from "@/lib/auth-client";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import {
   Button,
   Description,
   FieldError,
+  InputGroup,
   Form,
   Input,
   Label,
-
   TextField,
 } from "@heroui/react";
 
 export function SignUp() {
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries()) as Record<
       string,
-      FormDataEntryValue
+      string
     >;
 
-    console.log('Data from the form', data);
+    const { data: resData, error } = await signUp.email({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      callbackURL: "/",
+    });
   };
 
   return (
@@ -59,25 +68,48 @@ export function SignUp() {
           isRequired
           minLength={8}
           name="password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           validate={(value) => {
             if (value.length < 8) {
               return "Password must be at least 8 characters";
             }
+
             if (!/[A-Z]/.test(value)) {
               return "Password must contain at least one uppercase letter";
             }
+
             if (!/[0-9]/.test(value)) {
               return "Password must contain at least one number";
             }
+
             return null;
           }}
         >
           <Label>Password</Label>
-          <Input placeholder="Enter your password" />
+
+          <InputGroup>
+            <InputGroup.Input placeholder="Enter your password" />
+
+            <InputGroup.Suffix>
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="cursor-pointer text-default-500 transition-colors hover:text-foreground"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <FaEyeSlash className="h-4 w-4" />
+                ) : (
+                  <FaEye className="h-4 w-4" />
+                )}
+              </button>
+            </InputGroup.Suffix>
+          </InputGroup>
+
           <Description>
             Must be at least 8 characters with 1 uppercase and 1 number
           </Description>
+
           <FieldError />
         </TextField>
         <div className="flex gap-2">
